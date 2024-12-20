@@ -1,0 +1,90 @@
+name: compile
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'
+env:
+  LATEX_ROOT: cv
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.0
+
+      - name: Install dependencies
+        run: |
+          gem install nokogiri
+          gem install bibtex-ruby
+          # Add any other gem installations or setup commands here
+
+      - name: Generate bibliometrics
+        run: ruby scholar_scraper.rb
+
+      - name: Generate bibliography
+        run: |
+          ruby publications_scraper.rb
+          ruby bibtex_prettifier.rb
+
+      - name: Build latex
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: ${{ env.LATEX_ROOT }}.tex
+          args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode -shell-escape
+
+      - name: Build publication list
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: publications_list.tex
+          args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode -shell-escape
+
+      - name: Bump version
+        id: bump-version
+        uses: anothrNick/github-tag-action@1.71.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: true
+
+      - name: Get Time
+        id: current-time
+        run: echo "::set-output name=time::$(date +'%Y-%m-%dT%H%M%S')"
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: '${{ steps.bump-version.outputs.new_tag }}-${{ steps.current-time.outputs.time }}'
+          release_name: '${{ steps.bump-version.outputs.new_tag }}-${{ steps.current-time.outputs.time }}'
+
+      - name: Upload Release Asset CV
+        id: upload-release-asset-cv
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.LATEX_ROOT }}.pdf
+          asset_name: ${{ env.LATEX_ROOT }}.pdf
+          asset_content_type: application/pdf
+
+      - name: Upload Release Asset Publications
+        id: upload-release-asset-publications
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./publications_list.pdf
+          asset_name: publications_list.pdf
+          asset_content_type: application/pdf

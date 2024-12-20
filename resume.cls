@@ -112,17 +112,19 @@
         {\centering
             \begin{tabular}{l@{\hskip 1cm}l}
                 \multicolumn{2}{c}{\printname}\\% Print the name specified with \name
-                \myprint{\@birthday}&\myprint{\@linkedin}\\
                 %\myprint{\@genre}&\myprint{\@email}\\
-                \@ifundefined{@addressone}{}{% Print the first address if specified
-                    \printaddress{\@addressone}}
-                \@ifundefined{@addresstwo}{}{% Print the second address if specified
-                    \printaddress{\@addresstwo}}
-                \@ifundefined{@addressthree}{}{% Print the third address if specified
-                    \printaddress{\@addressthree}}&\myprint{\@email}\\
-                \myprint{\@town}&\myprint{\@github}\\
-                \myprint{\@country}&\myprint{\@orcid}\\
-                \myprint{\@phone}&\myprint{\@googlescholar}\\
+                \myprint{\@email}&\myprint{\@linkedin}\\
+                \myprint{\@phone}&\myprint{\@github}\\
+                %\@ifundefined{@addressone}{}{% Print the first address if specified
+                %    \printaddress{\@addressone}}
+                %\@ifundefined{@addresstwo}{}{% Print the second address if specified
+                %    \printaddress{\@addresstwo}}
+                %\@ifundefined{@addressthree}{}{% Print the third address if specified
+                %    \printaddress{\@addressthree}}\\
+                \myprint{\@town}\\
+                \myprint{\@country}\\
+                %\myprint{\@orcid}\\
+                %\myprint{\@googlescholar}\\
                 %\myprint{\@skype}\\
                 %&\myprint{\@www}\\
             \end{tabular}
